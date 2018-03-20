@@ -7,27 +7,32 @@ use App\User;
 
 class RegistrationController extends Controller
 {
-    public function store()
+    public function store(Request $request)
     {
-        $rules = array(
+        $validator = \Validator::make($request->all(),[
             'name'  => 'required',
             'email' => 'required|email',
             'password' => 'required',
-        );
-        $email = request('email');
-        if (User::where('email', '=', request('email'))->count() > 0)
+        ]);
+        if($validator->fails())
         {
-            return response()->json(array(
-                'response' => '403'
-            ));
+            return response()->json([
+                'response' => 'bad request'
+            ]);
+        }
+        if (User::where('email', request('email'))->first())
+        {
+            return response()->json([
+                'response' => 'User already exists'
+            ], 403);
         }
         $user = User::create([
             'name' => request('name'),
             'email' => request('email'),
             'password' => bcrypt(request('password'))
         ]);
-        return response()->json(array(
+        return response()->json([
             'response' => '200'
-        ));
+        ]);
     }
 }
